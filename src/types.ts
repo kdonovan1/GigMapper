@@ -18,7 +18,11 @@ export interface StageElement {
   id: string
   type: AssetType
   label: string
-  /** Position on the whole layout area (stage + yard/driveway/FOH), not just a riser. */
+  /**
+   * CENTER position on the whole layout area (stage + yard/driveway/FOH),
+   * not just a riser — center, not top-left corner, so rotation pivots
+   * around the shape's own middle instead of swinging around a corner.
+   */
   xFt: number
   yFt: number
   widthFt: number

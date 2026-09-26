@@ -148,10 +148,10 @@ export const tapHouse66Project: StagePlotProject = {
       rotationDeg: 0,
       status: 'confirmed',
     },
-    { id: 'th-el-wedge-1', type: 'monitorWedge', label: 'Wedge 1 (Drummer)', xFt: 9, yFt: 6.5, widthFt: 2, depthFt: 1.5, rotationDeg: 180, status: 'confirmed', notes: 'Fed by AUX1.' },
-    { id: 'th-el-wedge-2', type: 'monitorWedge', label: 'Wedge 2 (Lead vox)', xFt: 4, yFt: 2, widthFt: 2, depthFt: 1.5, rotationDeg: 180, status: 'confirmed', notes: 'Fed by AUX2.' },
-    { id: 'th-el-wedge-3', type: 'monitorWedge', label: 'Wedge 3 (Backup vox)', xFt: 10, yFt: 2, widthFt: 2, depthFt: 1.5, rotationDeg: 180, status: 'confirmed', notes: 'Fed by AUX3.' },
-    { id: 'th-el-wedge-4', type: 'monitorWedge', label: 'Wedge 4 (Guitars)', xFt: 13, yFt: 2, widthFt: 2, depthFt: 1.5, rotationDeg: 180, status: 'confirmed', notes: 'Fed by AUX4.' },
+    { id: 'th-el-wedge-1', type: 'monitorWedge', label: 'Wedge 1 (Drummer)', xFt: 9, yFt: 6.5, widthFt: 2, depthFt: 1.5, rotationDeg: 0, status: 'confirmed', notes: 'Fed by AUX1.' },
+    { id: 'th-el-wedge-2', type: 'monitorWedge', label: 'Wedge 2 (Lead vox)', xFt: 4, yFt: 2, widthFt: 2, depthFt: 1.5, rotationDeg: 0, status: 'confirmed', notes: 'Fed by AUX2.' },
+    { id: 'th-el-wedge-3', type: 'monitorWedge', label: 'Wedge 3 (Backup vox)', xFt: 10, yFt: 2, widthFt: 2, depthFt: 1.5, rotationDeg: 0, status: 'confirmed', notes: 'Fed by AUX3.' },
+    { id: 'th-el-wedge-4', type: 'monitorWedge', label: 'Wedge 4 (Guitars)', xFt: 13, yFt: 2, widthFt: 2, depthFt: 1.5, rotationDeg: 0, status: 'confirmed', notes: 'Fed by AUX4.' },
   ],
   channels: [
     {

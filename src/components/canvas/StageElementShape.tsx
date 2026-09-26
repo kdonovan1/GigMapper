@@ -38,6 +38,8 @@ export function StageElementShape({
       ref={groupRef}
       x={element.xFt * pxPerFt}
       y={element.yFt * pxPerFt}
+      offsetX={widthPx / 2}
+      offsetY={depthPx / 2}
       rotation={element.rotationDeg}
       draggable
       onClick={onSelect}
