@@ -66,12 +66,18 @@ export function AuxSendGrid({ project }: AuxSendGridProps) {
                     max={10}
                     value={level ?? ''}
                     placeholder="—"
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      if (e.target.value === '') {
+                        setChannelAuxLevel(project.id, channel.id, { auxId: aux.id, level: null })
+                        return
+                      }
+                      const value = Number(e.target.value)
+                      if (Number.isNaN(value)) return
                       setChannelAuxLevel(project.id, channel.id, {
                         auxId: aux.id,
-                        level: e.target.value === '' ? null : Number(e.target.value),
+                        level: Math.min(Math.max(value, 0), 10),
                       })
-                    }
+                    }}
                     style={{ width: 48, textAlign: 'center' }}
                   />
                 </td>

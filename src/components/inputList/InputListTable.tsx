@@ -63,7 +63,7 @@ export function InputListTable({ project }: InputListTableProps) {
   const addChannel = useProjectStore((s) => s.addChannel)
   const updateChannel = useProjectStore((s) => s.updateChannel)
   const removeChannel = useProjectStore((s) => s.removeChannel)
-  const { selectedChannelId, selectChannel } = useUiStore()
+  const { selectedElementId, selectedChannelId, selectChannel } = useUiStore()
 
   if (!mixer) return <div>Unknown mixer definition.</div>
 
@@ -106,17 +106,25 @@ export function InputListTable({ project }: InputListTableProps) {
           {project.channels.map((channel) => {
             const rowIssues = issuesFor(channel.id)
             const isSelected = channel.id === selectedChannelId
+            const isLinkedHighlight = !isSelected && !!selectedElementId && channel.linkedElementId === selectedElementId
             return (
               <tr
                 key={channel.id}
                 onClick={() => selectChannel(channel.id)}
-                style={{ background: isSelected ? '#fff9e0' : undefined, cursor: 'pointer' }}
+                style={{
+                  background: isSelected ? '#fff9e0' : isLinkedHighlight ? '#fffbcc' : undefined,
+                  cursor: 'pointer',
+                }}
               >
                 <td style={cellStyle}>
                   <input
                     type="number"
                     value={channel.channelNumber}
-                    onChange={(e) => updateChannel(project.id, channel.id, { channelNumber: Number(e.target.value) })}
+                    onChange={(e) => {
+                      const value = Number(e.target.value)
+                      if (Number.isNaN(value)) return
+                      updateChannel(project.id, channel.id, { channelNumber: value })
+                    }}
                     style={{ ...inputStyle, width: 48 }}
                   />
                 </td>
@@ -210,7 +218,10 @@ export function InputListTable({ project }: InputListTableProps) {
       <button
         type="button"
         style={{ marginTop: 8 }}
-        onClick={() => addChannel(project.id, emptyChannel(project.channels.length + 1))}
+        onClick={() => {
+          const nextChannelNumber = project.channels.reduce((max, c) => Math.max(max, c.channelNumber), 0) + 1
+          addChannel(project.id, emptyChannel(nextChannelNumber))
+        }}
       >
         + Add input
       </button>

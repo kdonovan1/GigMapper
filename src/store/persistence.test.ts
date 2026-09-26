@@ -57,4 +57,17 @@ describe('exportProjectToJson / importProjectFromJson', () => {
     expect(() => importProjectFromJson('{"foo": "bar"}')).toThrow()
     expect(() => importProjectFromJson('not json at all')).toThrow()
   })
+
+  it('fills in missing arrays/fields on a partial export rather than crashing later', () => {
+    const partial = { name: 'Half-exported gig', elements: [{ type: 'mixer' }] }
+    const imported = importProjectFromJson(JSON.stringify(partial))
+
+    expect(imported.channels).toEqual([])
+    expect(imported.auxAssignments).toEqual([])
+    expect(imported.switchablePortModes).toEqual([])
+    expect(imported.stageWidthFt).toBeGreaterThan(0)
+    expect(imported.elements).toHaveLength(1)
+    expect(imported.elements[0].status).toBe('confirmed')
+    expect(typeof imported.elements[0].id).toBe('string')
+  })
 })

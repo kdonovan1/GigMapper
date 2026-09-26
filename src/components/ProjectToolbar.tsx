@@ -27,7 +27,9 @@ export function ProjectToolbar({ project, onBack }: ProjectToolbarProps) {
     a.href = url
     a.download = `${project.name.replace(/[^a-z0-9-_]+/gi, '_') || 'project'}.json`
     a.click()
-    URL.revokeObjectURL(url)
+    // Revoking immediately can cancel the download in some browsers (notably Safari);
+    // give it a beat to actually start before freeing the object URL.
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -89,18 +91,30 @@ export function ProjectToolbar({ project, onBack }: ProjectToolbarProps) {
             Layout width (ft)
             <input
               type="number"
+              min={1}
+              max={500}
               style={{ ...inputStyle, width: 70 }}
               value={project.stageWidthFt}
-              onChange={(e) => updateProject(project.id, { stageWidthFt: Number(e.target.value) })}
+              onChange={(e) => {
+                const value = Number(e.target.value)
+                if (Number.isNaN(value)) return
+                updateProject(project.id, { stageWidthFt: Math.min(Math.max(value, 1), 500) })
+              }}
             />
           </label>
           <label style={fieldStyle}>
             Layout depth (ft)
             <input
               type="number"
+              min={1}
+              max={500}
               style={{ ...inputStyle, width: 70 }}
               value={project.stageDepthFt}
-              onChange={(e) => updateProject(project.id, { stageDepthFt: Number(e.target.value) })}
+              onChange={(e) => {
+                const value = Number(e.target.value)
+                if (Number.isNaN(value)) return
+                updateProject(project.id, { stageDepthFt: Math.min(Math.max(value, 1), 500) })
+              }}
             />
           </label>
         </div>

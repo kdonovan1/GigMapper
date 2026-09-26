@@ -13,15 +13,21 @@ export function AssetPalette({ project }: AssetPaletteProps) {
 
   function handleAdd(type: (typeof assetTypes)[number]) {
     const entry = assetLibrary[type]
-    // Stagger new placements slightly so repeated adds don't stack exactly on top of each other.
-    const offset = (project.elements.length % 6) * 1.5
+    // Stagger new placements slightly so repeated adds don't stack exactly on top of
+    // each other, then clamp so the (center-based) position keeps the whole shape on
+    // the visible layout area even on a small stage or after many adds.
+    const stagger = (project.elements.length % 6) * 1.5
+    const halfWidth = entry.defaultWidthFt / 2
+    const halfDepth = entry.defaultDepthFt / 2
+    const xFt = Math.min(halfWidth + 1 + stagger, Math.max(halfWidth, project.stageWidthFt - halfWidth))
+    const yFt = Math.min(halfDepth + 1 + stagger, Math.max(halfDepth, project.stageDepthFt - halfDepth))
     const id = crypto.randomUUID()
     addElement(project.id, {
       id,
       type,
       label: entry.label,
-      xFt: 1 + offset,
-      yFt: 1 + offset,
+      xFt,
+      yFt,
       widthFt: entry.defaultWidthFt,
       depthFt: entry.defaultDepthFt,
       rotationDeg: 0,

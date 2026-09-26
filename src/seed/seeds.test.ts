@@ -1,8 +1,42 @@
 import { describe, expect, it } from 'vitest'
 import { yamahaMG16XU } from '../data/mixerDefinitions'
+import type { StageElement, StagePlotProject } from '../types'
 import { validateProject } from '../utils/mixerValidation'
 import { porchfestProject } from './porchfest'
 import { tapHouse66Project } from './tapHouse66'
+
+/** xFt/yFt are the element's CENTER — see StageElementShape.tsx. */
+function bounds(el: StageElement) {
+  return {
+    left: el.xFt - el.widthFt / 2,
+    right: el.xFt + el.widthFt / 2,
+    top: el.yFt - el.depthFt / 2,
+    bottom: el.yFt + el.depthFt / 2,
+  }
+}
+
+function overlaps(a: StageElement, b: StageElement): boolean {
+  const A = bounds(a)
+  const B = bounds(b)
+  return A.left < B.right && A.right > B.left && A.top < B.bottom && A.bottom > B.top
+}
+
+function assertNoOverlapsAndInBounds(project: StagePlotProject) {
+  for (const el of project.elements) {
+    const b = bounds(el)
+    expect(b.left, `${el.label} (${el.id}) left edge off the layout`).toBeGreaterThanOrEqual(0)
+    expect(b.top, `${el.label} (${el.id}) top edge off the layout`).toBeGreaterThanOrEqual(0)
+    expect(b.right, `${el.label} (${el.id}) right edge off the layout`).toBeLessThanOrEqual(project.stageWidthFt)
+    expect(b.bottom, `${el.label} (${el.id}) bottom edge off the layout`).toBeLessThanOrEqual(project.stageDepthFt)
+  }
+  for (let i = 0; i < project.elements.length; i++) {
+    for (let j = i + 1; j < project.elements.length; j++) {
+      const a = project.elements[i]
+      const b = project.elements[j]
+      expect(overlaps(a, b), `${a.label} overlaps ${b.label}`).toBe(false)
+    }
+  }
+}
 
 describe('Porchfest seed', () => {
   it('marks the lead guitarist tentative with a note that he bailed', () => {
@@ -25,6 +59,10 @@ describe('Porchfest seed', () => {
 
   it('validates cleanly against the MG16XU', () => {
     expect(validateProject(porchfestProject, yamahaMG16XU)).toHaveLength(0)
+  })
+
+  it('has no overlapping elements and keeps everything within the layout bounds', () => {
+    assertNoOverlapsAndInBounds(porchfestProject)
   })
 })
 
@@ -59,5 +97,9 @@ describe('Tap House 66 seed', () => {
     // left for Bones if he shows, which is exactly what should be flagged.
     const issues = validateProject(tapHouse66Project, yamahaMG16XU)
     expect(issues.some((i) => i.id.includes('capacity-exceeded'))).toBe(true)
+  })
+
+  it('has no overlapping elements and keeps everything within the layout bounds', () => {
+    assertNoOverlapsAndInBounds(tapHouse66Project)
   })
 })

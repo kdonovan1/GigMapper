@@ -9,6 +9,7 @@ interface UiState {
   selectElement: (id: string | null) => void
   selectChannel: (id: string | null) => void
   setActiveTab: (tab: EditorTab) => void
+  resetSelection: () => void
 }
 
 /**
@@ -23,4 +24,5 @@ export const useUiStore = create<UiState>((set) => ({
   selectElement: (id) => set({ selectedElementId: id }),
   selectChannel: (id) => set({ selectedChannelId: id }),
   setActiveTab: (tab) => set({ activeTab: tab }),
+  resetSelection: () => set({ selectedElementId: null, selectedChannelId: null }),
 }))

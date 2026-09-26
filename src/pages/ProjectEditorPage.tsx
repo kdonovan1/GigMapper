@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { AssetPalette } from '../components/canvas/AssetPalette'
+import { ElementInspector } from '../components/canvas/ElementInspector'
 import { StageCanvas } from '../components/canvas/StageCanvas'
 import { AuxSendGrid } from '../components/inputList/AuxSendGrid'
 import { InputListTable } from '../components/inputList/InputListTable'
@@ -52,19 +53,33 @@ export function ProjectEditorPage({ projectId, onBack }: ProjectEditorPageProps)
         ))}
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
-        {activeTab === 'stagePlot' && (
-          <div style={{ display: 'flex', gap: 12, height: '100%' }}>
-            <div style={{ width: 180, flexShrink: 0, border: '1px solid #eee', borderRadius: 6 }}>
-              <AssetPalette project={project} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <StageCanvas project={project} />
-            </div>
+      {/*
+        scrollbarGutter: 'stable' reserves the vertical scrollbar's width whether or
+        not it's actually showing. Without it, a tall canvas (e.g. a deep Porchfest
+        layout) can trigger a feedback loop: the scrollbar appears -> the canvas's
+        measured container width shrinks -> pxPerFt drops -> canvas height shrinks
+        below the scroll threshold -> scrollbar disappears -> width grows back ->
+        repeat, so the ResizeObserver never settles.
+      */}
+      <div style={{ flex: 1, overflow: 'auto', padding: 12, position: 'relative', scrollbarGutter: 'stable' }}>
+        {/* Every tab's content stays mounted (hidden via CSS rather than unmounted) so
+            the Konva stage keeps its ref/canvas alive for PNG export regardless of
+            which tab is currently visible. */}
+        <div style={{ display: activeTab === 'stagePlot' ? 'flex' : 'none', gap: 12, height: '100%' }}>
+          <div style={{ width: 180, flexShrink: 0, border: '1px solid #eee', borderRadius: 6, display: 'flex', flexDirection: 'column' }}>
+            <AssetPalette project={project} />
+            <ElementInspector project={project} />
           </div>
-        )}
-        {activeTab === 'inputList' && <InputListTable project={project} />}
-        {activeTab === 'monitorMixes' && <AuxSendGrid project={project} />}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <StageCanvas project={project} />
+          </div>
+        </div>
+        <div style={{ display: activeTab === 'inputList' ? 'block' : 'none' }}>
+          <InputListTable project={project} />
+        </div>
+        <div style={{ display: activeTab === 'monitorMixes' ? 'block' : 'none' }}>
+          <AuxSendGrid project={project} />
+        </div>
       </div>
     </div>
   )

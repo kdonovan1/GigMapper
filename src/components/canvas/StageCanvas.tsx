@@ -1,4 +1,5 @@
 import Konva from 'konva'
+import type { Ref } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Layer, Line, Stage, Transformer } from 'react-konva'
 import { useProjectStore } from '../../store/projectStore'
@@ -8,7 +9,13 @@ import { StageElementShape } from './StageElementShape'
 
 interface StageCanvasProps {
   project: StagePlotProject
+  stageRef?: Ref<Konva.Stage>
 }
+
+// Layout size is a free-typed number field (ProjectToolbar clamps it too, but this is
+// the last line of defense against a 0 or absurdly large value hanging the canvas).
+const MIN_STAGE_FT = 1
+const MAX_STAGE_FT = 500
 
 function buildGridLines(widthPx: number, heightPx: number, pxPerFt: number, stageWidthFt: number, stageDepthFt: number) {
   const lines: { points: number[]; bold: boolean }[] = []
@@ -23,13 +30,18 @@ function buildGridLines(widthPx: number, heightPx: number, pxPerFt: number, stag
   return lines
 }
 
-export function StageCanvas({ project }: StageCanvasProps) {
+function isTypingTarget(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+}
+
+export function StageCanvas({ project, stageRef }: StageCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(600)
   const nodeRefs = useRef<Record<string, Konva.Group | null>>({})
   const transformerRef = useRef<Konva.Transformer>(null)
 
   const updateElement = useProjectStore((s) => s.updateElement)
+  const removeElement = useProjectStore((s) => s.removeElement)
   const { selectedElementId, selectedChannelId, selectElement } = useUiStore()
 
   useEffect(() => {
@@ -43,9 +55,22 @@ export function StageCanvas({ project }: StageCanvasProps) {
     return () => observer.disconnect()
   }, [])
 
-  const pxPerFt = containerWidth / project.stageWidthFt
-  const heightPx = project.stageDepthFt * pxPerFt
-  const gridLines = buildGridLines(containerWidth, heightPx, pxPerFt, project.stageWidthFt, project.stageDepthFt)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.key !== 'Delete' && e.key !== 'Backspace') || !selectedElementId || isTypingTarget(e.target)) return
+      e.preventDefault()
+      removeElement(project.id, selectedElementId)
+      selectElement(null)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedElementId, project.id, removeElement, selectElement])
+
+  const stageWidthFt = Math.min(Math.max(project.stageWidthFt, MIN_STAGE_FT), MAX_STAGE_FT)
+  const stageDepthFt = Math.min(Math.max(project.stageDepthFt, MIN_STAGE_FT), MAX_STAGE_FT)
+  const pxPerFt = containerWidth / stageWidthFt
+  const heightPx = stageDepthFt * pxPerFt
+  const gridLines = buildGridLines(containerWidth, heightPx, pxPerFt, stageWidthFt, stageDepthFt)
 
   useEffect(() => {
     const transformer = transformerRef.current
@@ -60,9 +85,13 @@ export function StageCanvas({ project }: StageCanvasProps) {
   return (
     <div ref={containerRef} style={{ width: '100%' }}>
       <Stage
+        ref={stageRef}
         width={containerWidth}
         height={heightPx}
         onMouseDown={(e) => {
+          if (e.target === e.target.getStage()) selectElement(null)
+        }}
+        onTouchStart={(e) => {
           if (e.target === e.target.getStage()) selectElement(null)
         }}
       >
@@ -82,6 +111,8 @@ export function StageCanvas({ project }: StageCanvasProps) {
               key={element.id}
               element={element}
               pxPerFt={pxPerFt}
+              canvasWidthPx={containerWidth}
+              canvasHeightPx={heightPx}
               isSelected={element.id === selectedElementId}
               isLinkedHighlight={element.id === linkedElementId}
               onSelect={() => selectElement(element.id)}

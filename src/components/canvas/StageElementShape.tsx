@@ -12,6 +12,8 @@ function roundToSnap(value: number): number {
 interface StageElementShapeProps {
   element: StageElement
   pxPerFt: number
+  canvasWidthPx: number
+  canvasHeightPx: number
   isSelected: boolean
   isLinkedHighlight: boolean
   onSelect: () => void
@@ -22,6 +24,8 @@ interface StageElementShapeProps {
 export function StageElementShape({
   element,
   pxPerFt,
+  canvasWidthPx,
+  canvasHeightPx,
   isSelected,
   isLinkedHighlight,
   onSelect,
@@ -42,16 +46,25 @@ export function StageElementShape({
       offsetY={depthPx / 2}
       rotation={element.rotationDeg}
       draggable
+      dragBoundFunc={(pos) => ({
+        x: Math.min(Math.max(pos.x, widthPx / 2), Math.max(widthPx / 2, canvasWidthPx - widthPx / 2)),
+        y: Math.min(Math.max(pos.y, depthPx / 2), Math.max(depthPx / 2, canvasHeightPx - depthPx / 2)),
+      })}
       onClick={onSelect}
       onTap={onSelect}
       onDragEnd={(e) => {
-        onChange({
-          xFt: roundToSnap(e.target.x() / pxPerFt),
-          yFt: roundToSnap(e.target.y() / pxPerFt),
-        })
+        const xFt = roundToSnap(e.target.x() / pxPerFt)
+        const yFt = roundToSnap(e.target.y() / pxPerFt)
+        // react-konva only re-applies a prop when its value actually changes, so if the
+        // snapped value equals what it already was, force the node back to the exact
+        // snapped pixel position ourselves rather than leaving it wherever it was dropped.
+        e.target.position({ x: xFt * pxPerFt, y: yFt * pxPerFt })
+        onChange({ xFt, yFt })
       }}
       onTransformEnd={(e) => {
-        onChange({ rotationDeg: Math.round(e.target.rotation()) })
+        const rotationDeg = Math.round(e.target.rotation())
+        e.target.rotation(rotationDeg)
+        onChange({ rotationDeg })
       }}
     >
       <Rect

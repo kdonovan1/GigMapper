@@ -17,7 +17,11 @@ export function createEmptyProject(name = 'Untitled Project'): StagePlotProject 
     stageWidthFt: 20,
     stageDepthFt: 20,
     mixerDefinitionId: yamahaMG16XU.id,
-    auxAssignments: yamahaMG16XU.auxSends.map((aux) => ({ auxId: aux.id, label: aux.label })),
+    auxAssignments: yamahaMG16XU.auxSends.map((aux) => ({
+      auxId: aux.id,
+      label: aux.label,
+      ...(aux.switchablePrePost ? { prePost: 'pre' as const } : {}),
+    })),
     switchablePortModes: [],
     elements: [],
     channels: [],
