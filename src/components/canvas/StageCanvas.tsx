@@ -1,7 +1,7 @@
 import Konva from 'konva'
 import type { Ref } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { Layer, Line, Stage, Transformer } from 'react-konva'
+import { Layer, Line, Rect, Stage, Transformer } from 'react-konva'
 import { useProjectStore } from '../../store/projectStore'
 import { useUiStore } from '../../store/uiStore'
 import type { StagePlotProject } from '../../types'
@@ -42,7 +42,7 @@ export function StageCanvas({ project, stageRef }: StageCanvasProps) {
 
   const updateElement = useProjectStore((s) => s.updateElement)
   const removeElement = useProjectStore((s) => s.removeElement)
-  const { selectedElementId, selectedChannelId, selectElement } = useUiStore()
+  const { selectedElementId, selectedChannelId, selectElement, activeTab } = useUiStore()
 
   useEffect(() => {
     const el = containerRef.current
@@ -57,14 +57,26 @@ export function StageCanvas({ project, stageRef }: StageCanvasProps) {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if ((e.key !== 'Delete' && e.key !== 'Backspace') || !selectedElementId || isTypingTarget(e.target)) return
+      // Scoped to the Stage Plot tab specifically: the canvas (and its selection)
+      // stays mounted on every tab so PNG export keeps working regardless of which
+      // tab is visible, but that means a Delete/Backspace press on another tab
+      // (e.g. with focus on a plain button, which isTypingTarget doesn't cover)
+      // would otherwise silently delete an element the user can't currently see.
+      if (
+        activeTab !== 'stagePlot' ||
+        (e.key !== 'Delete' && e.key !== 'Backspace') ||
+        !selectedElementId ||
+        isTypingTarget(e.target)
+      ) {
+        return
+      }
       e.preventDefault()
       removeElement(project.id, selectedElementId)
       selectElement(null)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedElementId, project.id, removeElement, selectElement])
+  }, [selectedElementId, project.id, removeElement, selectElement, activeTab])
 
   const stageWidthFt = Math.min(Math.max(project.stageWidthFt, MIN_STAGE_FT), MAX_STAGE_FT)
   const stageDepthFt = Math.min(Math.max(project.stageDepthFt, MIN_STAGE_FT), MAX_STAGE_FT)
@@ -96,6 +108,8 @@ export function StageCanvas({ project, stageRef }: StageCanvasProps) {
         }}
       >
         <Layer listening={false}>
+          {/* A solid backing so the exported PNG/print snapshot isn't transparent. */}
+          <Rect x={0} y={0} width={containerWidth} height={heightPx} fill="#ffffff" />
           {gridLines.map((line, i) => (
             <Line
               key={i}

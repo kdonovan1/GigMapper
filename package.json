@@ -1,5 +1,5 @@
 {
-  "name": "stage-plot-app",
+  "name": "gigmapper",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "node e2e/smoke.mjs"
   },
   "dependencies": {
     "konva": "^10.7.0",

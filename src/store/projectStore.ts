@@ -163,7 +163,13 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
       })),
 
     removeElement: (projectId, elementId) =>
-      withProject(projectId, (p) => ({ ...p, elements: p.elements.filter((e) => e.id !== elementId) })),
+      withProject(projectId, (p) => ({
+        ...p,
+        elements: p.elements.filter((e) => e.id !== elementId),
+        // Clear any channel that was pointing at the now-deleted element, rather than
+        // leaving a dangling reference that would silently no-op on highlight.
+        channels: p.channels.map((c) => (c.linkedElementId === elementId ? { ...c, linkedElementId: undefined } : c)),
+      })),
 
     addChannel: (projectId, channel) =>
       withProject(projectId, (p) => ({ ...p, channels: [...p.channels, channel] })),

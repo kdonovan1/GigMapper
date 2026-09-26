@@ -1,5 +1,14 @@
 :root {
-  color-scheme: light dark;
+  /*
+   * Deliberately light-only for v1: every component uses hard-coded light
+   * colors (inline styles throughout), not a light/dark token system. With
+   * `light dark` here, a dark-mode OS would restyle native form controls
+   * (selects, inputs, buttons) with dark backgrounds while our own inline
+   * styles keep their text dark too, making them unreadable. Pinning to
+   * `light` keeps native controls consistent with the rest of the app
+   * regardless of OS theme, until a real dark theme is designed.
+   */
+  color-scheme: light;
   font: 15px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -16,6 +25,8 @@ body,
 
 body {
   overflow: hidden;
+  background: #fff;
+  color: #111;
 }
 
 .print-only {

@@ -98,6 +98,7 @@ export function InputListTable({ project }: InputListTableProps) {
             <th style={cellStyle}>Intermediate device</th>
             <th style={cellStyle}>Mixer port</th>
             <th style={cellStyle}>Status</th>
+            <th style={cellStyle}>Linked element</th>
             <th style={cellStyle}>Notes</th>
             <th style={cellStyle} />
           </tr>
@@ -195,6 +196,22 @@ export function InputListTable({ project }: InputListTableProps) {
                   >
                     <option value="confirmed">Confirmed</option>
                     <option value="tentative">Tentative</option>
+                  </select>
+                </td>
+                <td style={cellStyle}>
+                  <select
+                    value={channel.linkedElementId ?? ''}
+                    onChange={(e) =>
+                      updateChannel(project.id, channel.id, { linkedElementId: e.target.value || undefined })
+                    }
+                    style={inputStyle}
+                  >
+                    <option value="">None</option>
+                    {project.elements.map((el) => (
+                      <option key={el.id} value={el.id}>
+                        {el.label || el.type}
+                      </option>
+                    ))}
                   </select>
                 </td>
                 <td style={cellStyle}>

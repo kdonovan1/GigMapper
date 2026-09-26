@@ -1,4 +1,4 @@
-import { yamahaMG16XU } from '../data/mixerDefinitions'
+import { getMixerDefinition, yamahaMG16XU } from '../data/mixerDefinitions'
 import type { InputChannel, StageElement, StagePlotProject } from '../types'
 
 const STORAGE_KEY = 'stageplot:v1:projects'
@@ -51,7 +51,12 @@ function normalizeProject(raw: Partial<StagePlotProject>): Omit<StagePlotProject
     contactInfo: raw.contactInfo,
     stageWidthFt: typeof raw.stageWidthFt === 'number' && raw.stageWidthFt > 0 ? raw.stageWidthFt : 20,
     stageDepthFt: typeof raw.stageDepthFt === 'number' && raw.stageDepthFt > 0 ? raw.stageDepthFt : 20,
-    mixerDefinitionId: typeof raw.mixerDefinitionId === 'string' ? raw.mixerDefinitionId : yamahaMG16XU.id,
+    // Fall back to the MG16XU rather than an unrecognized id — the latter would
+    // silently render a blank print view and an "Unknown mixer definition" input list.
+    mixerDefinitionId:
+      typeof raw.mixerDefinitionId === 'string' && getMixerDefinition(raw.mixerDefinitionId)
+        ? raw.mixerDefinitionId
+        : yamahaMG16XU.id,
     auxAssignments: Array.isArray(raw.auxAssignments) ? raw.auxAssignments : [],
     switchablePortModes: Array.isArray(raw.switchablePortModes) ? raw.switchablePortModes : [],
     elements: Array.isArray(raw.elements) ? raw.elements.map(normalizeElement) : [],

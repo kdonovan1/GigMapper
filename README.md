@@ -12,6 +12,7 @@ npm run dev       # local dev server
 npm run test      # Vitest unit tests
 npm run build     # production build to dist/
 npm run preview   # serve the production build locally
+npm run test:e2e  # headless Playwright smoke test against a production build (needs Chromium; not run in CI)
 ```
 
 Everything is client-side and single-user: projects live in `localStorage`, with Export/Import JSON for backup and portability. Two example projects (built from real gig facts) are available from the project list via "Load example".

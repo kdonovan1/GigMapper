@@ -10,6 +10,10 @@ import { ProjectToolbar } from '../components/ProjectToolbar'
 import { useProjectStore } from '../store/projectStore'
 import { type EditorTab, useUiStore } from '../store/uiStore'
 
+function nextFrame(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+}
+
 interface ProjectEditorPageProps {
   projectId: string
   onBack: () => void
@@ -23,7 +27,7 @@ const TABS: { id: EditorTab; label: string }[] = [
 
 export function ProjectEditorPage({ projectId, onBack }: ProjectEditorPageProps) {
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId))
-  const { activeTab, setActiveTab } = useUiStore()
+  const { activeTab, setActiveTab, selectElement } = useUiStore()
   const stageRef = useRef<Konva.Stage>(null)
   const [snapshotDataUrl, setSnapshotDataUrl] = useState<string | null>(null)
 
@@ -31,21 +35,37 @@ export function ProjectEditorPage({ projectId, onBack }: ProjectEditorPageProps)
     if (!project) onBack()
   }, [project, onBack])
 
-  function captureSnapshot(): string | null {
+  // Best-effort for Ctrl+P / the browser's own print menu (bypassing our Export/Print
+  // button): still clear the selection chrome and grab a snapshot, synchronously,
+  // since we can't reliably delay the browser's own print capture the way we can
+  // delay our own window.print() call below.
+  useEffect(() => {
+    function handleBeforePrint() {
+      selectElement(null)
+      setSnapshotDataUrl(stageRef.current?.toDataURL({ pixelRatio: 2 }) ?? null)
+    }
+    window.addEventListener('beforeprint', handleBeforePrint)
+    return () => window.removeEventListener('beforeprint', handleBeforePrint)
+  }, [selectElement])
+
+  async function captureSnapshot(): Promise<string | null> {
+    // Deselect first so the rotate handle / yellow highlight don't end up baked into
+    // the exported image, then wait a couple of frames for that to actually render
+    // before reading the canvas.
+    selectElement(null)
+    await nextFrame()
     const dataUrl = stageRef.current?.toDataURL({ pixelRatio: 2 }) ?? null
     setSnapshotDataUrl(dataUrl)
     return dataUrl
   }
 
-  function handleExportPrint() {
-    captureSnapshot()
-    // Let the snapshot state update (and the print-only view re-render with it)
-    // before the browser's print dialog takes over the render loop.
-    requestAnimationFrame(() => requestAnimationFrame(() => window.print()))
+  async function handleExportPrint() {
+    await captureSnapshot()
+    window.print()
   }
 
-  function handleDownloadPng() {
-    const dataUrl = captureSnapshot()
+  async function handleDownloadPng() {
+    const dataUrl = await captureSnapshot()
     if (!dataUrl) return
     const a = document.createElement('a')
     a.href = dataUrl
