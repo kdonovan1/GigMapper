@@ -17,3 +17,24 @@ body,
 body {
   overflow: hidden;
 }
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    height: auto;
+    overflow: visible;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
